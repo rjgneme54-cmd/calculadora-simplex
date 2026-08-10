@@ -19,11 +19,27 @@ export function AppShell({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border/80 bg-card/90 px-4 shadow-elevated backdrop-blur-md supports-[backdrop-filter]:bg-card/70 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-primary shadow-glow-primary flex size-10 items-center justify-center rounded-xl text-primary-foreground">
-            <Calculator className="size-5" aria-hidden="true" />
+          <div className="relative flex size-10 shrink-0 items-center justify-center">
+            <span
+              className="animate-pulse-ring absolute inset-0 rounded-xl bg-[color-mix(in_oklch,var(--primary-vivid)_55%,transparent)] blur-md"
+              aria-hidden="true"
+            />
+            <div className="bg-gradient-primary shadow-glow-primary relative flex size-10 items-center justify-center rounded-xl text-primary-foreground">
+              <Calculator className="size-5" aria-hidden="true" />
+            </div>
           </div>
           <div className="leading-tight">
-            <p className="text-base font-bold tracking-tight text-foreground">Simplex Solver</p>
+            <div className="flex items-center gap-2">
+              <p className="text-base font-bold tracking-tight text-foreground">Simplex Solver</p>
+              <svg width="26" height="14" viewBox="0 0 26 14" className="hidden opacity-80 sm:block" aria-hidden="true">
+                <line x1="3" y1="11" x2="13" y2="3" stroke="var(--secondary)" strokeWidth="1.5" />
+                <line x1="13" y1="3" x2="23" y2="9" stroke="var(--secondary)" strokeWidth="1.5" />
+                <line x1="3" y1="11" x2="23" y2="9" stroke="var(--border)" strokeWidth="1.5" strokeDasharray="2 2" />
+                <circle cx="3" cy="11" r="2" fill="var(--accent)" />
+                <circle cx="23" cy="9" r="2" fill="var(--secondary)" />
+                <circle cx="13" cy="3" r="2.5" fill="var(--primary-vivid)" />
+              </svg>
+            </div>
             <p className="hidden text-xs font-medium text-muted-foreground sm:block">
               Programación Lineal · Método Simplex y Gráfico
             </p>

@@ -52,65 +52,68 @@
 }
 
 /*
-  Paleta "Data-Dense Dashboard" definida por el sistema de diseño del producto.
-  El modo oscuro NO invierte los colores: usa variantes propias (slate-950/900)
-  y acentos ajustados para mantener contraste >= 4.5:1, no un filtro sobre el claro.
+  Paleta "Vértice": identidad ligada a la geometría de la programación lineal
+  (vértices, aristas, planos de corte). Violeta como marca, índigo como
+  secundario, naranja quemado como acento decorativo; verde/ámbar/rojo se
+  mantienen como semántica reconocible (éxito/pivote/error), no como acento.
+  El modo oscuro NO invierte los colores: usa variantes propias (violeta casi
+  negro) con acentos reajustados para mantener contraste >= 4.5:1.
 */
 :root {
-  --background: #eef2f9;
-  --foreground: #0f172a;
+  --background: #f5f2fb;
+  --foreground: #17112c;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #17112c;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #1e40af;
-  --primary-foreground: #f8fafc;
-  --primary-vivid: #2563eb;
-  --secondary: #3b82f6;
-  --secondary-foreground: #0f172a;
-  --muted: #eef2f9;
-  --muted-foreground: #64748b;
-  --accent: #d97706;
-  --accent-foreground: #0f172a;
+  --popover-foreground: #17112c;
+  --primary: #6d28d9;
+  --primary-foreground: #faf5ff;
+  --primary-vivid: #c026d3;
+  --secondary: #4338ca;
+  --secondary-foreground: #eef2ff;
+  --muted: #efe9fa;
+  --muted-foreground: #6b6483;
+  --accent: #c2410c;
+  --accent-foreground: #fff7ed;
   --success: #059669;
-  --success-foreground: #0f172a;
+  --success-foreground: #17112c;
   --warning: #d97706;
-  --warning-foreground: #0f172a;
+  --warning-foreground: #17112c;
   --destructive: #dc2626;
   --destructive-foreground: #f8fafc;
   --pivot: #d97706;
-  --pivot-foreground: #0f172a;
-  --border: #dbe3ef;
-  --input: #dbe3ef;
-  --ring: #3b82f6;
-  --radius: 0.75rem;
-  --shadow-color: 222 47% 30%;
+  --pivot-foreground: #17112c;
+  --border: #e3daf5;
+  --input: #e3daf5;
+  --ring: #8b5cf6;
+  --radius: 0.85rem;
+  --shadow-color: 262 55% 22%;
   --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #1e40af;
-  --sidebar-primary-foreground: #f8fafc;
-  --sidebar-accent: #eef2f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #dbe3ef;
-  --sidebar-ring: #3b82f6;
+  --sidebar-foreground: #17112c;
+  --sidebar-primary: #6d28d9;
+  --sidebar-primary-foreground: #faf5ff;
+  --sidebar-accent: #efe9fa;
+  --sidebar-accent-foreground: #17112c;
+  --sidebar-border: #e3daf5;
+  --sidebar-ring: #8b5cf6;
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f1f5f9;
-  --card: #0f172a;
-  --card-foreground: #f1f5f9;
-  --popover: #0f172a;
-  --popover-foreground: #f1f5f9;
-  --primary: #3b82f6;
-  --primary-foreground: #020617;
-  --primary-vivid: #60a5fa;
-  --secondary: #60a5fa;
-  --secondary-foreground: #020617;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #f59e0b;
-  --accent-foreground: #1c1203;
+  --background: #0d0a1c;
+  --foreground: #f3effc;
+  --card: #17132b;
+  --card-foreground: #f3effc;
+  --popover: #17132b;
+  --popover-foreground: #f3effc;
+  --primary: #a78bfa;
+  --primary-foreground: #150f2e;
+  --primary-vivid: #e879f9;
+  --secondary: #818cf8;
+  --secondary-foreground: #150f2e;
+  --muted: #221d3a;
+  --muted-foreground: #a79cc4;
+  --accent: #fb923c;
+  --accent-foreground: #2a1206;
   --success: #10b981;
   --success-foreground: #022c22;
   --warning: #f59e0b;
@@ -119,18 +122,18 @@
   --destructive-foreground: #2d0a0a;
   --pivot: #f59e0b;
   --pivot-foreground: #1c1203;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #60a5fa;
-  --shadow-color: 217 91% 4%;
-  --sidebar: #0f172a;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #020617;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: #1e293b;
-  --sidebar-ring: #60a5fa;
+  --border: #2c2545;
+  --input: #2c2545;
+  --ring: #a78bfa;
+  --shadow-color: 262 65% 3%;
+  --sidebar: #17132b;
+  --sidebar-foreground: #f3effc;
+  --sidebar-primary: #a78bfa;
+  --sidebar-primary-foreground: #150f2e;
+  --sidebar-accent: #221d3a;
+  --sidebar-accent-foreground: #f3effc;
+  --sidebar-border: #2c2545;
+  --sidebar-ring: #a78bfa;
 }
 
 @layer base {
@@ -141,10 +144,14 @@
     @apply text-foreground;
     background-color: var(--background);
     background-image:
-      radial-gradient(1100px 520px at 8% -8%, color-mix(in oklch, var(--primary) 10%, transparent), transparent),
-      radial-gradient(900px 460px at 100% 0%, color-mix(in oklch, var(--accent) 8%, transparent), transparent);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+      radial-gradient(1100px 520px at 8% -8%, color-mix(in oklch, var(--primary) 12%, transparent), transparent),
+      radial-gradient(900px 460px at 100% 0%, color-mix(in oklch, var(--primary-vivid) 9%, transparent), transparent),
+      radial-gradient(700px 420px at 50% 100%, color-mix(in oklch, var(--accent) 6%, transparent), transparent),
+      radial-gradient(circle, color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1px);
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    background-size: auto, auto, auto, 26px 26px;
+    background-position: 0 0, 0 0, 0 0, -13px -13px;
+    background-attachment: fixed, fixed, fixed, fixed;
   }
   html {
     @apply font-sans;
@@ -183,5 +190,42 @@
 
   .bg-gradient-primary {
     background-image: linear-gradient(135deg, var(--primary), var(--primary-vivid));
+  }
+
+  .card-lift {
+    transition:
+      transform 0.18s ease-out,
+      box-shadow 0.18s ease-out;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 4px -2px hsl(var(--shadow-color) / 0.1),
+      0 18px 32px -14px color-mix(in oklch, var(--primary) 30%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-lift:hover {
+      transform: none;
+    }
+  }
+
+  @keyframes pulse-ring {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.12);
+    }
+  }
+  .animate-pulse-ring {
+    animation: pulse-ring 2.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse-ring {
+      animation: none;
+    }
   }
 }
