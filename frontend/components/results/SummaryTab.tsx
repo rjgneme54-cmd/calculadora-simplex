@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatFraction } from "@/lib/fraction-format";
+import { cn } from "@/lib/utils";
 import { varNameToLatex } from "@/lib/katex-helpers";
 import { useUiStore } from "@/store/ui-store";
 import type { SolveResponse } from "@/types/api";
@@ -35,7 +36,7 @@ export function SummaryTab({ result }: { result: SolveResponse }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className={status.className}>
+      <Card className={cn("shadow-elevated border-l-4", status.className)}>
         <CardContent className="flex items-start gap-3 pt-6">
           <StatusIcon className="mt-0.5 size-6 shrink-0" aria-hidden="true" />
           <div className="flex flex-col gap-2">
@@ -60,12 +61,14 @@ export function SummaryTab({ result }: { result: SolveResponse }) {
 
       {result.status === "optimal" && result.z && result.solution && (
         <div className="grid gap-4 sm:grid-cols-2">
-          <Card>
+          <Card className="bg-gradient-primary shadow-glow-primary border-transparent text-primary-foreground">
             <CardHeader>
-              <CardTitle className="text-base">Valor óptimo</CardTitle>
+              <CardTitle className="text-primary-foreground/85 text-xs font-semibold tracking-wide uppercase">
+                Valor óptimo
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-mono text-3xl font-semibold tabular-nums text-primary">
+              <p className="font-mono text-4xl font-bold tabular-nums">
                 Z = {formatFraction(result.z, displayMode)}
               </p>
             </CardContent>

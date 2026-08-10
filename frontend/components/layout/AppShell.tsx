@@ -16,15 +16,15 @@ export function AppShell({
   const toggleFormPanel = useUiStore((s) => s.toggleFormPanel);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:px-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Calculator className="size-4" aria-hidden="true" />
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border/80 bg-card/90 px-4 shadow-elevated backdrop-blur-md supports-[backdrop-filter]:bg-card/70 sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-primary shadow-glow-primary flex size-10 items-center justify-center rounded-xl text-primary-foreground">
+            <Calculator className="size-5" aria-hidden="true" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold text-foreground">Simplex Solver</p>
-            <p className="hidden text-xs text-muted-foreground sm:block">
+            <p className="text-base font-bold tracking-tight text-foreground">Simplex Solver</p>
+            <p className="hidden text-xs font-medium text-muted-foreground sm:block">
               Programación Lineal · Método Simplex y Gráfico
             </p>
           </div>
@@ -35,7 +35,7 @@ export function AppShell({
       <div className="flex flex-1 flex-col lg:flex-row">
         <aside
           className={cn(
-            "border-border bg-card lg:sticky lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:overflow-y-auto lg:border-r",
+            "border-border/80 bg-card/60 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-r",
             collapsed ? "lg:hidden" : "lg:w-[440px] lg:shrink-0",
           )}
         >
@@ -45,7 +45,7 @@ export function AppShell({
         <button
           type="button"
           onClick={toggleFormPanel}
-          className="sticky top-14 z-20 hidden h-10 w-6 shrink-0 items-center justify-center self-start border-y border-r border-border bg-card text-muted-foreground transition-colors hover:text-foreground lg:flex"
+          className="sticky top-16 z-20 hidden h-10 w-6 shrink-0 items-center justify-center self-start border-y border-r border-border/80 bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:flex"
           aria-label={collapsed ? "Mostrar panel de entrada" : "Ocultar panel de entrada"}
         >
           {collapsed ? (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Loader2, AlertCircle, Sparkles, SlidersHorizontal, Hash, Target, ListChecks } from "lucide-react";
 import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
@@ -18,9 +18,32 @@ import { ConstraintRow } from "@/components/problem-form/ConstraintRow";
 import { ExampleLoader } from "@/components/problem-form/ExampleLoader";
 import { buildLinearExpressionFromNumbers } from "@/lib/katex-helpers";
 import { buildSolveRequest, solveProblem, ApiError } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 import { defaultConstraint, defaultProblem, defaultVariable, problemFormSchema, type ProblemFormValues } from "@/lib/schemas";
 import { useProblemStore } from "@/store/problem-store";
 import { useUiStore } from "@/store/ui-store";
+
+const sectionIconStyles = {
+  accent: "bg-accent/15 text-accent",
+  secondary: "bg-secondary/15 text-secondary",
+  primary: "bg-primary/15 text-primary",
+  success: "bg-success/15 text-success",
+  warning: "bg-warning/15 text-warning",
+} as const;
+
+function SectionIcon({
+  icon: Icon,
+  color,
+}: {
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  color: keyof typeof sectionIconStyles;
+}) {
+  return (
+    <div className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg", sectionIconStyles[color])}>
+      <Icon className="size-4" aria-hidden={true} />
+    </div>
+  );
+}
 
 export function ProblemForm() {
   const form = useForm<ProblemFormValues>({
@@ -100,7 +123,10 @@ export function ProblemForm() {
       <form onSubmit={handleSubmit(onSubmit, () => setDimensionError("Revisá los campos marcados en rojo."))} className="flex flex-col gap-5">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Ejemplos precargados</CardTitle>
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <SectionIcon icon={Sparkles} color="accent" />
+              Ejemplos precargados
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ExampleLoader />
@@ -109,7 +135,10 @@ export function ProblemForm() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tipo de problema</CardTitle>
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <SectionIcon icon={SlidersHorizontal} color="secondary" />
+              Tipo de problema
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1 space-y-1.5">
@@ -141,7 +170,10 @@ export function ProblemForm() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Variables</CardTitle>
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <SectionIcon icon={Hash} color="primary" />
+              Variables
+            </CardTitle>
             <Button type="button" variant="outline" size="sm" onClick={addVariable}>
               <Plus className="size-4" aria-hidden="true" />
               Agregar variable
@@ -161,7 +193,10 @@ export function ProblemForm() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Función objetivo</CardTitle>
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <SectionIcon icon={Target} color="success" />
+              Función objetivo
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
@@ -193,7 +228,10 @@ export function ProblemForm() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Restricciones</CardTitle>
+            <CardTitle className="flex items-center gap-2.5 text-base">
+              <SectionIcon icon={ListChecks} color="warning" />
+              Restricciones
+            </CardTitle>
             <Button type="button" variant="outline" size="sm" onClick={addConstraint}>
               <Plus className="size-4" aria-hidden="true" />
               Agregar restricción

@@ -35,6 +35,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-vivid: var(--primary-vivid);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -56,7 +57,7 @@
   y acentos ajustados para mantener contraste >= 4.5:1, no un filtro sobre el claro.
 */
 :root {
-  --background: #f8fafc;
+  --background: #eef2f9;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
@@ -64,9 +65,10 @@
   --popover-foreground: #0f172a;
   --primary: #1e40af;
   --primary-foreground: #f8fafc;
+  --primary-vivid: #2563eb;
   --secondary: #3b82f6;
   --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
+  --muted: #eef2f9;
   --muted-foreground: #64748b;
   --accent: #d97706;
   --accent-foreground: #0f172a;
@@ -78,17 +80,18 @@
   --destructive-foreground: #f8fafc;
   --pivot: #d97706;
   --pivot-foreground: #0f172a;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #dbe3ef;
+  --input: #dbe3ef;
   --ring: #3b82f6;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
+  --shadow-color: 222 47% 30%;
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
   --sidebar-primary: #1e40af;
   --sidebar-primary-foreground: #f8fafc;
-  --sidebar-accent: #f1f5f9;
+  --sidebar-accent: #eef2f9;
   --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
+  --sidebar-border: #dbe3ef;
   --sidebar-ring: #3b82f6;
 }
 
@@ -101,6 +104,7 @@
   --popover-foreground: #f1f5f9;
   --primary: #3b82f6;
   --primary-foreground: #020617;
+  --primary-vivid: #60a5fa;
   --secondary: #60a5fa;
   --secondary-foreground: #020617;
   --muted: #1e293b;
@@ -118,6 +122,7 @@
   --border: #1e293b;
   --input: #1e293b;
   --ring: #60a5fa;
+  --shadow-color: 217 91% 4%;
   --sidebar: #0f172a;
   --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #3b82f6;
@@ -133,10 +138,21 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--background);
+    background-image:
+      radial-gradient(1100px 520px at 8% -8%, color-mix(in oklch, var(--primary) 10%, transparent), transparent),
+      radial-gradient(900px 460px at 100% 0%, color-mix(in oklch, var(--accent) 8%, transparent), transparent);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading tracking-tight;
   }
 }
 
@@ -147,5 +163,25 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .shadow-elevated {
+    box-shadow:
+      0 1px 2px -1px hsl(var(--shadow-color) / 0.06),
+      0 8px 20px -6px hsl(var(--shadow-color) / 0.1);
+  }
+  .shadow-elevated-lg {
+    box-shadow:
+      0 2px 4px -2px hsl(var(--shadow-color) / 0.08),
+      0 16px 36px -12px hsl(var(--shadow-color) / 0.16);
+  }
+  .shadow-glow-primary {
+    box-shadow:
+      0 1px 2px hsl(var(--shadow-color) / 0.1),
+      0 10px 24px -8px color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+
+  .bg-gradient-primary {
+    background-image: linear-gradient(135deg, var(--primary), var(--primary-vivid));
   }
 }
