@@ -18,7 +18,7 @@ export const ExportSnapshot = forwardRef<HTMLDivElement, { result: SolveResponse
         {result.graphical && (
           <div className="mt-6">
             <h2 className="mb-2 text-base font-semibold">Método gráfico</h2>
-            <GraphicalMethod graphical={result.graphical} status={result.status} />
+            <GraphicalMethod graphical={result.graphical} status={result.status} interactive={false} />
           </div>
         )}
       </div>

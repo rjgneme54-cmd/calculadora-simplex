@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Data, Layout } from "plotly.js";
-import { AlertTriangle, XCircle } from "lucide-react";
+import { AlertTriangle, XCircle, Maximize2, RotateCcw, ZoomIn } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -39,16 +40,25 @@ function clipObjectiveLine(c1: number, c2: number, z: number, bounds: PlotBounds
 export function GraphicalMethod({
   graphical,
   status,
+  interactive = true,
 }: {
   graphical: GraphicalData;
   status: SolveStatus;
+  interactive?: boolean;
 }) {
   const displayMode = useUiStore((s) => s.displayMode);
   const colors = useChartColors();
   const [varX, varY] = graphical.var_names;
   const hasOptimal = status === "optimal" && graphical.optimal_vertices.length > 0;
+  const [viewOverride, setViewOverride] = useState<{ xrange: [number, number]; yrange: [number, number] } | null>(
+    null,
+  );
 
-  const { data, layout, frames } = useMemo(() => {
+  useEffect(() => {
+    setViewOverride(null);
+  }, [graphical]);
+
+  const { data, layout, frames, bounds, fitBounds } = useMemo(() => {
     const bounds = graphical.plot_bounds;
     const c1 = graphical.objective_coeffs[0].decimal;
     const c2 = graphical.objective_coeffs[1].decimal;
@@ -167,6 +177,7 @@ export function GraphicalMethod({
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       font: { color: colors.foreground },
+      dragmode: "zoom",
       updatemenus: hasOptimal
         ? [
             {
@@ -194,8 +205,39 @@ export function GraphicalMethod({
         : [],
     };
 
-    return { data: traces, layout: chartLayout, frames: animationFrames };
+    const vx = graphical.feasible_vertices.map((v) => v.x.decimal);
+    const vy = graphical.feasible_vertices.map((v) => v.y.decimal);
+    const nonnegX = bounds.xmin >= -1e-9;
+    const nonnegY = bounds.ymin >= -1e-9;
+    const rawMinX = nonnegX ? 0 : Math.min(...vx, 0);
+    const rawMaxX = Math.max(...vx, 1);
+    const rawMinY = nonnegY ? 0 : Math.min(...vy, 0);
+    const rawMaxY = Math.max(...vy, 1);
+    const padX = (rawMaxX - rawMinX) * 0.15 || 1;
+    const padY = (rawMaxY - rawMinY) * 0.15 || 1;
+    const fitBounds =
+      vx.length > 0
+        ? { xmin: rawMinX - padX, xmax: rawMaxX + padX, ymin: rawMinY - padY, ymax: rawMaxY + padY }
+        : bounds;
+
+    return { data: traces, layout: chartLayout, frames: animationFrames, bounds, fitBounds };
   }, [graphical, hasOptimal, colors, varX, varY]);
+
+  const displayLayout: Partial<Layout> = viewOverride
+    ? {
+        ...layout,
+        xaxis: { ...layout.xaxis, range: viewOverride.xrange },
+        yaxis: { ...layout.yaxis, range: viewOverride.yrange },
+      }
+    : layout;
+
+  function resetView() {
+    setViewOverride({ xrange: [bounds.xmin, bounds.xmax], yrange: [bounds.ymin, bounds.ymax] });
+  }
+
+  function fitToFeasibleRegion() {
+    setViewOverride({ xrange: [fitBounds.xmin, fitBounds.xmax], yrange: [fitBounds.ymin, fitBounds.ymax] });
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -213,11 +255,36 @@ export function GraphicalMethod({
       )}
 
       <div className="overflow-hidden rounded-md border border-border">
+        {interactive && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ZoomIn className="size-3.5 shrink-0" aria-hidden="true" />
+              Rueda del mouse o pellizco para hacer zoom, arrastrá para desplazarte, doble clic para restablecer.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Button type="button" variant="outline" size="sm" onClick={fitToFeasibleRegion}>
+                <Maximize2 className="size-3.5" aria-hidden="true" />
+                Ajustar a la región factible
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={resetView}>
+                <RotateCcw className="size-3.5" aria-hidden="true" />
+                Restablecer vista
+              </Button>
+            </div>
+          </div>
+        )}
         <Plot
           data={data}
-          layout={layout}
+          layout={displayLayout}
           frames={frames}
-          config={{ scrollZoom: true, displaylogo: false, responsive: true }}
+          config={{
+            scrollZoom: true,
+            displaylogo: false,
+            responsive: true,
+            displayModeBar: interactive,
+            doubleClick: "reset+autosize",
+            modeBarButtonsToRemove: ["lasso2d", "select2d"],
+          }}
           style={{ width: "100%", height: "460px" }}
           useResizeHandler
         />
