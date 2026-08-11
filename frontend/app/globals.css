@@ -155,11 +155,27 @@
   }
   html {
     @apply font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "calt" 1;
   }
   h1,
   h2,
   h3 {
     @apply font-heading tracking-tight;
+    text-wrap: balance;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-feature-settings:
+      "zero" 1,
+      "ss01" 1;
+    letter-spacing: -0.01em;
   }
 }
 
