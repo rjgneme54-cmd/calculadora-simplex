@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.routes import router
 
-app = FastAPI(title="Simplex Solver API", version="0.1.0")
+app = FastAPI(title="Calculadora Simplex API", version="0.1.0")
 
 _origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 

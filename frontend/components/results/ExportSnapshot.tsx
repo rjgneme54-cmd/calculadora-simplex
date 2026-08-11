@@ -13,7 +13,7 @@ export const ExportSnapshot = forwardRef<HTMLDivElement, { result: SolveResponse
   function ExportSnapshot({ result }, ref) {
     return (
       <div ref={ref} className="w-[800px] bg-background p-8 text-foreground">
-        <h1 className="mb-4 text-xl font-semibold">Simplex Solver — Resultado</h1>
+        <h1 className="mb-4 text-xl font-semibold">Calculadora Simplex — Resultado</h1>
         <SummaryTab result={result} />
         {result.graphical && (
           <div className="mt-6">

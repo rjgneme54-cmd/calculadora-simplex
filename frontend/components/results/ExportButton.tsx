@@ -32,7 +32,7 @@ export function ExportButton({ targetRef }: { targetRef: RefObject<HTMLDivElemen
     setExporting("image");
     try {
       const dataUrl = await captureSnapshot(targetRef.current);
-      triggerDownload(dataUrl, "simplex-solver-resultado.png");
+      triggerDownload(dataUrl, "calculadora-simplex-resultado.png");
     } catch {
       setError("No se pudo generar la imagen. Probá de nuevo.");
     } finally {
@@ -58,7 +58,7 @@ export function ExportButton({ targetRef }: { targetRef: RefObject<HTMLDivElemen
         format: [image.width, image.height],
       });
       pdf.addImage(dataUrl, "PNG", 0, 0, image.width, image.height);
-      pdf.save("simplex-solver-resultado.pdf");
+      pdf.save("calculadora-simplex-resultado.pdf");
     } catch {
       setError("No se pudo generar el PDF. Probá de nuevo.");
     } finally {

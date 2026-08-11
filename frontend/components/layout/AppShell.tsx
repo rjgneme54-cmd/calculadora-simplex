@@ -30,7 +30,7 @@ export function AppShell({
           </div>
           <div className="leading-tight">
             <div className="flex items-center gap-2">
-              <p className="text-base font-bold tracking-tight text-foreground">Simplex Solver</p>
+              <p className="text-base font-bold tracking-tight text-foreground">Calculadora Simplex</p>
               <svg width="26" height="14" viewBox="0 0 26 14" className="hidden opacity-80 sm:block" aria-hidden="true">
                 <line x1="3" y1="11" x2="13" y2="3" stroke="var(--secondary)" strokeWidth="1.5" />
                 <line x1="13" y1="3" x2="23" y2="9" stroke="var(--secondary)" strokeWidth="1.5" />
@@ -73,6 +73,10 @@ export function AppShell({
 
         <main className="min-w-0 flex-1 p-4 sm:p-6">{resultsSlot}</main>
       </div>
+
+      <footer className="border-t border-border/60 bg-card/40 px-4 py-3 text-center text-xs text-muted-foreground sm:px-6">
+        Calculadora Simplex — Prof. Neme Gastón
+      </footer>
     </div>
   );
 }

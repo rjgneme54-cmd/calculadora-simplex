@@ -1,4 +1,6 @@
-# Simplex Solver — Programación Lineal
+# Calculadora Simplex — Programación Lineal
+
+**Autor:** Prof. Neme Gastón
 
 Calculadora profesional de Programación Lineal para estudiantes y docentes de Métodos Cuantitativos / Investigación Operativa. Resuelve problemas con **n** variables y **m** restricciones mediante el **Método Simplex** (tableau paso a paso, con aritmética exacta en fracciones) y el **Método Gráfico** (para 2 variables), e incluye análisis de sensibilidad, dualidad y programación entera (Branch & Bound).
 

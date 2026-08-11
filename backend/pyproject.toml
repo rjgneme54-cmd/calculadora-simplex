@@ -2,6 +2,7 @@
 name = "simplex-solver-backend"
 version = "0.1.0"
 description = "Motor de Programacion Lineal (Simplex, Metodo Grafico, Sensibilidad, Dual, Branch & Bound)"
+authors = [{ name = "Prof. Neme Gastón" }]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

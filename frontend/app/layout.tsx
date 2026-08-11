@@ -15,9 +15,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Simplex Solver | Programación Lineal",
+  title: "Calculadora Simplex | Programación Lineal",
   description:
     "Resolvé problemas de Programación Lineal con el Método Simplex (Dos Fases y Gran M) y el Método Gráfico, con tableau paso a paso, análisis de sensibilidad, dual y programación entera.",
+  authors: [{ name: "Prof. Neme Gastón" }],
 };
 
 export default function RootLayout({

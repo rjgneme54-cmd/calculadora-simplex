@@ -1,7 +1,8 @@
 {
-  "name": "frontend",
+  "name": "calculadora-simplex",
   "version": "0.1.0",
   "private": true,
+  "author": "Prof. Neme Gastón",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
