@@ -6,6 +6,12 @@ Calculadora profesional de Programación Lineal para estudiantes y docentes de M
 
 Es una calculadora **sin estado en el servidor**: no hay base de datos ni login. Cada resolución es un único request/response; el estado de la UI (problema actual, iteración seleccionada, preferencias) vive solo en el cliente.
 
+## Versión standalone (un solo archivo)
+
+[`standalone/calculadora-simplex.html`](standalone/calculadora-simplex.html) es una versión ligera y **100% autocontenida**: no depende de ningún backend, servidor ni conexión a internet. Se puede compartir como un único archivo `.html` y se usa con doble clic en cualquier navegador.
+
+Incluye el motor completo (Dos Fases, aritmética exacta con fracciones, tableau paso a paso con explicación en español, Método Gráfico, Sensibilidad, Dual y Programación Entera vía Branch & Bound), reimplementado en JavaScript puro y verificado contra los mismos resultados que la app completa. No incluye: Gran M, exportar PDF/imagen, ni modo oscuro.
+
 ## Capacidades
 
 - Maximización y minimización, restricciones `≤`/`≥`/`=`, variables con o sin restricción de no negatividad.

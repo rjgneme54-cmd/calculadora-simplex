@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Simplex</title>
+<style>
+  :root {
+    --background: #f5f2fb;
+    --foreground: #17112c;
+    --card: #ffffff;
+    --primary: #6d28d9;
+    --primary-vivid: #c026d3;
+    --secondary: #4338ca;
+    --muted: #efe9fa;
+    --muted-foreground: #6b6483;
+    --accent: #c2410c;
+    --success: #059669;
+    --warning: #d97706;
+    --destructive: #dc2626;
+    --pivot: #d97706;
+    --border: #e3daf5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    padding: 0 0 60px;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; background: var(--card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .logo {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--primary), var(--primary-vivid));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+  }
+  header h1 { margin: 0; font-size: 16px; font-weight: 800; }
+  header p { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+  main { max-width: 1000px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .icon-badge {
+    width: 24px; height: 24px; border-radius: 7px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
+  }
+  label { font-size: 12px; font-weight: 600; color: var(--muted-foreground); display: block; margin-bottom: 4px; }
+  select, input[type="number"], input[type="text"] {
+    font: inherit; padding: 7px 8px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--background); color: var(--foreground); width: 100%;
+  }
+  input[type="number"] { font-family: ui-monospace, Consolas, monospace; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer; border-radius: 8px; border: 1px solid transparent;
+    padding: 8px 14px; font-size: 13px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-vivid)); color: white;
+    box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--primary) 50%, transparent);
+  }
+  .btn-outline { background: var(--card); border-color: var(--border); color: var(--foreground); }
+  .btn-outline:hover { background: var(--muted); }
+  .btn-icon { padding: 6px 9px; }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .var-col { display: flex; flex-direction: column; gap: 4px; min-width: 70px; }
+  .constraint-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+  .coef-input { width: 64px; }
+  .constraint-row select { width: 62px; flex-shrink: 0; }
+  .constraint-row .rhs-input { width: 70px; }
+  .term-label { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--muted-foreground); }
+  .status-banner { border-left: 4px solid; border-radius: 8px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .status-optimal { border-color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--card)); }
+  .status-infeasible { border-color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, var(--card)); }
+  .status-unbounded { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, var(--card)); }
+  .status-title { font-weight: 700; font-size: 14px; }
+  .z-hero {
+    background: linear-gradient(135deg, var(--primary), var(--primary-vivid)); color: white;
+    border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  .z-hero .label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; opacity: .85; font-weight: 700; }
+  .z-hero .value { font-family: ui-monospace, Consolas, monospace; font-size: 32px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .solution-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  .solution-item { background: var(--muted); border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, Consolas, monospace; }
+  .solution-item .name { font-size: 11px; color: var(--muted-foreground); }
+  .solution-item .val { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+  th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; font-family: inherit; font-weight: 600; }
+  .pivot-cell { background: color-mix(in srgb, var(--pivot) 18%, transparent); color: var(--pivot); font-weight: 700; border: 1.5px solid var(--pivot); border-radius: 4px; }
+  .iteration-block { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 12px; overflow-x: auto; }
+  .iteration-header { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; font-size: 12px; }
+  .badge { display: inline-flex; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .badge-enter { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+  .badge-leave { background: color-mix(in srgb, var(--destructive) 15%, transparent); color: var(--destructive); }
+  .badge-phase { background: var(--muted); color: var(--muted-foreground); }
+  .error-text { color: var(--destructive); font-size: 12px; margin-top: 4px; }
+  footer { text-align: center; font-size: 11px; color: var(--muted-foreground); padding: 20px; }
+  .hint { font-size: 11px; color: var(--muted-foreground); margin-top: 6px; }
+  .explanation { font-size: 13px; line-height: 1.5; background: var(--muted); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+  .graph-wrap { width: 100%; overflow-x: auto; }
+  .graph-wrap svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--muted-foreground); margin-top: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .vertex-table { margin-top: 10px; }
+  .vertex-table th, .vertex-table td { text-align: right; }
+  .vertex-table th:first-child, .vertex-table td:first-child { text-align: left; }
+  tr.optimal-row { background: color-mix(in srgb, var(--success) 12%, transparent); }
+  .tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .tab-btn { background: none; border: none; padding: 9px 13px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); border-bottom: 2px solid transparent; border-radius: 0; white-space: nowrap; }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .tab-panel { display: none; flex-direction: column; gap: 16px; }
+  .tab-panel.active { display: flex; }
+  .var-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .var-type-row select { width: 130px; }
+  .tree-node { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; }
+  .tree-node.incumbent { border-color: var(--success); background: color-mix(in srgb, var(--success) 8%, var(--card)); }
+  .tree-node.pruned { opacity: 0.7; }
+  .tree-node .tn-title { font-weight: 700; margin-bottom: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dual-block { font-size: 13px; line-height: 1.7; }
+  .cs-list { font-size: 12px; line-height: 1.8; font-family: ui-monospace, Consolas, monospace; }
+  @media (max-width: 640px) {
+    .coef-input, .rhs-input { width: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">&Sigma;</div>
+  <div>
+    <h1>Calculadora Simplex</h1>
+    <p>Programación Lineal · Método de las Dos Fases (versión standalone)</p>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2><span class="icon-badge" style="background:color-mix(in srgb, var(--secondary) 15%, transparent); color:var(--secondary);">&#9881;</span> Tipo de problema</h2>
+    <div class="row">
+      <div class="var-col">
+        <label>Objetivo</label>
+        <select id="sense">
+          <option value="max">Maximizar</option>
+          <option value="min">Minimizar</option>
+        </select>
+      </div>
+      <div class="var-col">
+        <label>Cantidad de variables</label>
+        <select id="numVars"></select>
+      </div>
+    </div>
+    <p class="hint">El método gráfico solo se muestra cuando el problema tiene exactamente 2 variables.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon-badge" style="background:color-mix(in srgb, var(--primary) 15%, transparent); color:var(--primary);">#</span> Variables</h2>
+    <div id="varTypesRow"></div>
+    <p class="hint">"Entera" o "Binaria" habilita Ramificación y Acotamiento en la pestaña "Entera".</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon-badge" style="background:color-mix(in srgb, var(--success) 15%, transparent); color:var(--success);">&#9678;</span> Función objetivo</h2>
+    <div id="objectiveRow" class="row"></div>
+  </div>
+
+  <div class="card">
+    <div class="row-header">
+      <h2 style="margin:0;"><span class="icon-badge" style="background:color-mix(in srgb, var(--warning) 15%, transparent); color:var(--warning);">&#9776;</span> Restricciones</h2>
+      <button class="btn-outline" onclick="addConstraint()">+ Agregar restricción</button>
+    </div>
+    <div id="constraints"></div>
+  </div>
+
+  <button class="btn-primary" style="padding:12px; font-size:14px;" onclick="solveProblem()">Resolver</button>
+  <div id="formError" class="error-text"></div>
+
+  <div id="results"></div>
+
+  <footer>Calculadora Simplex — Prof. Neme Gastón</footer>
+</main>
+
+<script>
+// ---------- Fracciones exactas (BigInt) ----------
+function gcdBig(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) { [a, b] = [b, a % b]; } return a; }
+
+class Frac {
+  constructor(n, d = 1n) {
+    n = BigInt(n); d = BigInt(d);
+    if (d === 0n) throw new Error("División por cero");
+    if (d < 0n) { n = -n; d = -d; }
+    const g = gcdBig(n, d) || 1n;
+    this.n = n / g; this.d = d / g;
+  }
+  static from(x) { return x instanceof Frac ? x : new Frac(x); }
+  add(o) { o = Frac.from(o); return new Frac(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { o = Frac.from(o); return new Frac(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { o = Frac.from(o); return new Frac(this.n * o.n, this.d * o.d); }
+  div(o) { o = Frac.from(o); return new Frac(this.n * o.d, this.d * o.n); }
+  neg() { return new Frac(-this.n, this.d); }
+  isZero() { return this.n === 0n; }
+  cmp(o) { o = Frac.from(o); const l = this.n * o.d, r = o.n * this.d; return l < r ? -1 : (l > r ? 1 : 0); }
+  lt(o) { return this.cmp(o) < 0; }
+  gt(o) { return this.cmp(o) > 0; }
+  toString() { return this.d === 1n ? this.n.toString() : `${this.n}/${this.d}`; }
+  toDecimal() { return Number(this.n) / Number(this.d); }
+}
+const F0 = new Frac(0), F1 = new Frac(1);
+
+function parseFrac(str) {
+  str = String(str).trim();
+  if (str === "" || str === "-") return F0;
+  if (str.includes('/')) {
+    const [a, b] = str.split('/');
+    return new Frac(BigInt(a.trim()), BigInt(b.trim()));
+  }
+  if (str.includes('.')) {
+    const neg = str.startsWith('-');
+    if (neg) str = str.slice(1);
+    const [intPart, decPart = ''] = str.split('.');
+    const denom = 10n ** BigInt(decPart.length);
+    let n = BigInt((intPart || '0') + decPart);
+    if (neg) n = -n;
+    return new Frac(n, denom);
+  }
+  return new Frac(BigInt(str));
+}
+
+// ---------- Forma estándar ----------
+function buildStandardForm(problem) {
+  const n = problem.varNames.length;
+  const sign = problem.sense === 'min' ? -1 : 1;
+  const intObj = problem.objective.map(c => sign === 1 ? c : c.neg());
+
+  const normalized = problem.constraints.map(c => {
+    let coeffs = c.coeffs.slice();
+    let op = c.op;
+    let rhsVal = c.rhs;
+    if (rhsVal.lt(F0)) {
+      coeffs = coeffs.map(x => x.neg());
+      rhsVal = rhsVal.neg();
+      if (op === '<=') op = '>=';
+      else if (op === '>=') op = '<=';
+    }
+    return { coeffs, op, rhs: rhsVal };
+  });
+
+  let colNames = [...problem.varNames];
+  const artificialCols = [];
+  const rowExtraCol = {};
+  let colCursor = n;
+
+  normalized.forEach((c, i) => {
+    rowExtraCol[i] = {};
+    if (c.op === '<=') {
+      colNames.push(`s${i + 1}`); rowExtraCol[i].slack = colCursor; colCursor++;
+    } else if (c.op === '>=') {
+      colNames.push(`e${i + 1}`); rowExtraCol[i].surplus = colCursor; colCursor++;
+      colNames.push(`a${i + 1}`); rowExtraCol[i].artificial = colCursor; artificialCols.push(colCursor); colCursor++;
+    } else if (c.op === '=') {
+      colNames.push(`a${i + 1}`); rowExtraCol[i].artificial = colCursor; artificialCols.push(colCursor); colCursor++;
+    }
+  });
+
+  const totalCols = colCursor;
+  const matrix = normalized.map((c, i) => {
+    const row = new Array(totalCols).fill(F0);
+    for (let j = 0; j < n; j++) row[j] = c.coeffs[j];
+    const ex = rowExtraCol[i];
+    if (ex.slack !== undefined) row[ex.slack] = F1;
+    if (ex.surplus !== undefined) row[ex.surplus] = new Frac(-1);
+    if (ex.artificial !== undefined) row[ex.artificial] = F1;
+    return row;
+  });
+  const rhsArr = normalized.map(c => c.rhs);
+  const basis = normalized.map((c, i) => {
+    const ex = rowExtraCol[i];
+    return ex.artificial !== undefined ? ex.artificial : ex.slack;
+  });
+
+  return { matrix, rhs: rhsArr, basis, colNames, artificialCols, intObj, totalCols };
+}
+
+// ---------- Motor Simplex (tableau con fila 0 = objetivo, pivoteo Gauss-Jordan) ----------
+function pivot(rows, rhss, pivotRow, pivotCol) {
+  const pv = rows[pivotRow][pivotCol];
+  rows[pivotRow] = rows[pivotRow].map(v => v.div(pv));
+  rhss[pivotRow] = rhss[pivotRow].div(pv);
+  for (let i = 0; i < rows.length; i++) {
+    if (i === pivotRow) continue;
+    const factor = rows[i][pivotCol];
+    if (factor.isZero()) continue;
+    rows[i] = rows[i].map((v, j) => v.sub(factor.mul(rows[pivotRow][j])));
+    rhss[i] = rhss[i].sub(factor.mul(rhss[pivotRow]));
+  }
+}
+
+function canonicalizeRow0(rows, rhss, basis) {
+  for (let i = 1; i < rows.length; i++) {
+    const b = basis[i - 1];
+    const factor = rows[0][b];
+    if (factor.isZero()) continue;
+    rows[0] = rows[0].map((v, j) => v.sub(factor.mul(rows[i][j])));
+    rhss[0] = rhss[0].sub(factor.mul(rhss[i]));
+  }
+}
+
+function ratioTest(rows, rhss, basis, q, artificialSet) {
+  let best = null;
+  for (let i = 1; i < rows.length; i++) {
+    const coeff = rows[i][q];
+    if (coeff.isZero()) continue;
+    const isDegenerateArtificial = artificialSet.has(basis[i - 1]) && rhss[i].isZero();
+    if (isDegenerateArtificial) {
+      // Protege artificiales degeneradas: sin esto, un pivote posterior podría
+      // reactivarlas a un valor positivo (violando la restricción original)
+      // aunque el tableau siga reportando "óptimo". Se fuerza razón 0 ante
+      // cualquier coeficiente no nulo, sin importar el signo.
+      best = { row: i, ratio: F0 };
+      continue;
+    }
+    if (coeff.gt(F0)) {
+      const ratio = rhss[i].div(coeff);
+      if (best === null || ratio.lt(best.ratio)) best = { row: i, ratio };
+    }
+  }
+  return best;
+}
+
+function runPhase(rows, rhss, basis, colNames, artificialSet, excludeFromEntering, maxIter, iterations, phaseLabel) {
+  for (let iter = 0; iter < maxIter; iter++) {
+    let q = -1, best = F0;
+    for (let j = 0; j < rows[0].length; j++) {
+      if (excludeFromEntering.has(j)) continue;
+      if (rows[0][j].lt(best)) { best = rows[0][j]; q = j; }
+    }
+    if (q === -1) {
+      iterations.push(snapshot(rows, rhss, basis, colNames, null, null, phaseLabel, true));
+      return 'optimal';
+    }
+    const rt = ratioTest(rows, rhss, basis, q, artificialSet);
+    if (!rt) return 'unbounded';
+    iterations.push(snapshot(rows, rhss, basis, colNames, q, rt.row, phaseLabel, false));
+    pivot(rows, rhss, rt.row, q);
+    basis[rt.row - 1] = q;
+  }
+  return 'max_iterations';
+}
+
+function snapshot(rows, rhss, basis, colNames, enterCol, leaveRow, phaseLabel, isFinal) {
+  return {
+    phase: phaseLabel,
+    isFinal,
+    entering: isFinal ? null : colNames[enterCol],
+    leaving: isFinal ? null : colNames[basis[leaveRow - 1]],
+    pivotElement: isFinal ? null : rows[leaveRow][enterCol].toString(),
+    basisNames: basis.map(b => colNames[b]),
+    matrix: rows.slice(1).map(r => r.map(v => v.toString())),
+    rhs: rhss.slice(1).map(v => v.toString()),
+    zRow: rows[0].map(v => v.toString()),
+    zValue: rhss[0].toString(),
+    pivotRowIdx: isFinal ? -1 : leaveRow - 1,
+    pivotColIdx: isFinal ? -1 : enterCol,
+    colNames,
+  };
+}
+
+function explainIteration(snap, sense) {
+  if (snap.isFinal) {
+    return 'Se alcanzó el óptimo de esta fase: ya no hay coeficientes negativos en la fila Z, así que ningún intercambio de variables puede mejorar más el resultado.';
+  }
+  const enteringReason = snap.phase === 'Fase 1'
+    ? `porque ayuda a reducir la suma de variables artificiales lo más rápido posible`
+    : `porque tiene el coeficiente más negativo en la fila Z, lo que más mejora la función objetivo`;
+  const leavingIsArtificial = snap.leaving.startsWith('a');
+  const leavingReason = leavingIsArtificial
+    ? `sale de la base (era una variable artificial, sin significado en el problema real)`
+    : `sale de la base`;
+  return `La variable ${snap.entering} entra a la base ${enteringReason}. La variable ${snap.leaving} ${leavingReason} según la prueba de la razón mínima. El elemento pivote es ${snap.pivotElement}.`;
+}
+
+function solveLP(problem) {
+  const sf = buildStandardForm(problem);
+  const { matrix, rhs, basis, colNames, artificialCols, intObj, totalCols } = sf;
+  const artificialSet = new Set(artificialCols);
+  const rows = [new Array(totalCols).fill(F0), ...matrix.map(r => r.slice())];
+  const rhss = [F0, ...rhs.map(v => v)];
+  const iterations = [];
+
+  if (artificialCols.length > 0) {
+    const row0 = new Array(totalCols).fill(F0);
+    artificialCols.forEach(c => { row0[c] = F1; });
+    rows[0] = row0;
+    canonicalizeRow0(rows, rhss, basis);
+    const excl = new Set();
+    const status1 = runPhase(rows, rhss, basis, colNames, artificialSet, excl, 200, iterations, 'Fase 1');
+    if (status1 === 'unbounded') return { status: 'infeasible', iterations, colNames };
+    if (!rhss[0].isZero()) return { status: 'infeasible', iterations, colNames };
+  }
+
+  const row0b = new Array(totalCols).fill(F0);
+  for (let j = 0; j < intObj.length; j++) row0b[j] = intObj[j].neg();
+  rows[0] = row0b; rhss[0] = F0;
+  canonicalizeRow0(rows, rhss, basis);
+  const exclPhase2 = new Set(artificialCols);
+  const label = artificialCols.length > 0 ? 'Fase 2' : 'Simplex';
+  const status2 = runPhase(rows, rhss, basis, colNames, artificialSet, exclPhase2, 500, iterations, label);
+
+  if (status2 === 'unbounded') return { status: 'unbounded', iterations, colNames };
+  if (status2 === 'max_iterations') return { status: 'error', iterations, colNames };
+
+  const n = problem.varNames.length;
+  const solution = {};
+  problem.varNames.forEach((name, j) => {
+    const rowIdx = basis.indexOf(j);
+    solution[name] = rowIdx === -1 ? F0 : rhss[rowIdx + 1];
+  });
+  let z = rhss[0];
+  if (problem.sense === 'min') z = z.neg();
+
+  const finalTableau = {
+    matrix: rows.slice(1),
+    rhs: rhss.slice(1),
+    zRow: rows[0],
+    basis: basis.slice(),
+    colNames,
+    artificialCols,
+    n,
+  };
+
+  return { status: 'optimal', z, solution, iterations, colNames, finalTableau };
+}
+
+// ---------- UI ----------
+let numVars = 2;
+let constraints = [];
+
+function initUI() {
+  const sel = document.getElementById('numVars');
+  for (let i = 2; i <= 8; i++) {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = i;
+    sel.appendChild(opt);
+  }
+  sel.value = 2;
+  sel.addEventListener('change', () => { numVars = parseInt(sel.value); renderVarTypes(); renderObjective(); renderConstraints(); });
+  constraints = [
+    { coeffs: ['1', '0'], op: '<=', rhs: '4' },
+    { coeffs: ['0', '2'], op: '<=', rhs: '12' },
+    { coeffs: ['3', '2'], op: '<=', rhs: '18' },
+  ];
+  document.getElementById('objectiveRow').dataset.coeffs = JSON.stringify(['3', '5']);
+  renderVarTypes();
+  renderObjective();
+  renderConstraints();
+}
+
+function renderVarTypes() {
+  const container = document.getElementById('varTypesRow');
+  let saved = [];
+  try { saved = JSON.parse(container.dataset.types || '[]'); } catch (e) {}
+  container.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'var-type-row';
+  for (let i = 0; i < numVars; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'var-col';
+    const lbl = document.createElement('span');
+    lbl.className = 'term-label'; lbl.style.fontWeight = '700'; lbl.textContent = `x${i + 1}`;
+    const sel = document.createElement('select');
+    sel.className = 'var-type-select';
+    [['continuous', 'Continua'], ['integer', 'Entera'], ['binary', 'Binaria']].forEach(([val, text]) => {
+      const o = document.createElement('option'); o.value = val; o.textContent = text;
+      if (saved[i] === val) o.selected = true;
+      sel.appendChild(o);
+    });
+    wrap.appendChild(lbl);
+    wrap.appendChild(sel);
+    row.appendChild(wrap);
+  }
+  container.appendChild(row);
+}
+
+function readVarTypesFromDOM() {
+  return Array.from(document.querySelectorAll('.var-type-select')).map(s => s.value);
+}
+
+function renderObjective() {
+  const container = document.getElementById('objectiveRow');
+  let saved = [];
+  try { saved = JSON.parse(container.dataset.coeffs || '[]'); } catch (e) {}
+  container.innerHTML = '';
+  const senseLabel = document.createElement('span');
+  senseLabel.className = 'term-label';
+  senseLabel.textContent = 'Z =';
+  container.appendChild(senseLabel);
+  for (let i = 0; i < numVars; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'var-col';
+    wrap.style.minWidth = '64px';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'coef-input obj-coef'; inp.value = saved[i] ?? '0';
+    inp.placeholder = '0';
+    wrap.appendChild(inp);
+    const lbl = document.createElement('span');
+    lbl.className = 'term-label'; lbl.textContent = `x${i + 1}`;
+    container.appendChild(wrap);
+    container.appendChild(lbl);
+  }
+}
+
+function addConstraint() {
+  constraints.push({ coeffs: new Array(numVars).fill('0'), op: '<=', rhs: '0' });
+  renderConstraints();
+}
+function removeConstraint(idx) {
+  constraints.splice(idx, 1);
+  renderConstraints();
+}
+
+function renderConstraints() {
+  readConstraintsFromDOM();
+  constraints.forEach(c => {
+    while (c.coeffs.length < numVars) c.coeffs.push('0');
+    c.coeffs.length = numVars;
+  });
+  const container = document.getElementById('constraints');
+  container.innerHTML = '';
+  constraints.forEach((c, idx) => {
+    const row = document.createElement('div');
+    row.className = 'constraint-row';
+    row.dataset.idx = idx;
+    const rLabel = document.createElement('span');
+    rLabel.className = 'term-label'; rLabel.style.fontWeight = '700';
+    rLabel.textContent = `R${idx + 1}:`;
+    row.appendChild(rLabel);
+    for (let j = 0; j < numVars; j++) {
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.className = 'coef-input c-coef'; inp.value = c.coeffs[j];
+      row.appendChild(inp);
+      const lbl = document.createElement('span');
+      lbl.className = 'term-label'; lbl.textContent = `x${j + 1}${j < numVars - 1 ? ' +' : ''}`;
+      row.appendChild(lbl);
+    }
+    const opSel = document.createElement('select');
+    ['<=', '>=', '='].forEach(op => {
+      const o = document.createElement('option'); o.value = op; o.textContent = op;
+      if (op === c.op) o.selected = true;
+      opSel.appendChild(o);
+    });
+    opSel.className = 'c-op';
+    row.appendChild(opSel);
+    const rhsInp = document.createElement('input');
+    rhsInp.type = 'text'; rhsInp.className = 'rhs-input c-rhs'; rhsInp.value = c.rhs;
+    row.appendChild(rhsInp);
+    if (constraints.length > 1) {
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'btn-outline btn-icon'; rmBtn.textContent = '✕';
+      rmBtn.onclick = () => removeConstraint(idx);
+      row.appendChild(rmBtn);
+    }
+    container.appendChild(row);
+  });
+}
+
+function readConstraintsFromDOM() {
+  const rows = document.querySelectorAll('#constraints .constraint-row');
+  rows.forEach(row => {
+    const idx = parseInt(row.dataset.idx);
+    const coeffInputs = row.querySelectorAll('.c-coef');
+    const op = row.querySelector('.c-op');
+    const rhs = row.querySelector('.c-rhs');
+    if (!constraints[idx]) return;
+    constraints[idx].coeffs = Array.from(coeffInputs).map(i => i.value);
+    constraints[idx].op = op.value;
+    constraints[idx].rhs = rhs.value;
+  });
+}
+
+function readObjectiveFromDOM() {
+  return Array.from(document.querySelectorAll('.obj-coef')).map(i => i.value);
+}
+
+function solveProblem() {
+  document.getElementById('formError').textContent = '';
+  readConstraintsFromDOM();
+  const objRaw = readObjectiveFromDOM();
+  const sense = document.getElementById('sense').value;
+  const varNames = [];
+  for (let i = 0; i < numVars; i++) varNames.push(`x${i + 1}`);
+
+  let objective, cons;
+  try {
+    objective = objRaw.map(parseFrac);
+    cons = constraints.map(c => ({
+      coeffs: c.coeffs.map(parseFrac),
+      op: c.op,
+      rhs: parseFrac(c.rhs),
+    }));
+  } catch (e) {
+    document.getElementById('formError').textContent = 'Revisá los coeficientes: usá números, decimales (1.5) o fracciones (3/4).';
+    return;
+  }
+
+  const problem = { sense, varNames, objective, constraints: cons };
+  const varTypes = readVarTypesFromDOM();
+  let result;
+  try {
+    result = solveLP(problem);
+    if (problem.varNames.length === 2) {
+      result.graphical = computeGraphicalData(problem, result);
+    }
+    if (result.status === 'optimal') {
+      result.sensitivity = computeSensitivity(problem, result);
+      result.dual = computeDual(problem, result.sensitivity);
+      result.complementarySlackness = computeComplementarySlackness(problem, result, result.dual);
+    }
+    if (varTypes.some(t => t !== 'continuous')) {
+      result.branchAndBound = branchAndBound(problem, varTypes);
+    }
+  } catch (e) {
+    document.getElementById('formError').textContent = 'Error al resolver: ' + e.message;
+    return;
+  }
+  renderResults(result, problem);
+}
+
+// ---------- Método gráfico (solo 2 variables) ----------
+function computeGraphicalData(problem, result) {
+  const c1 = problem.objective[0], c2 = problem.objective[1];
+  const lines = problem.constraints.map((c, i) => ({ a: c.coeffs[0], b: c.coeffs[1], rhs: c.rhs, label: `R${i + 1}` }));
+  const boundaryLines = [...lines, { a: F1, b: F0, rhs: F0, label: 'x1=0' }, { a: F0, b: F1, rhs: F0, label: 'x2=0' }];
+
+  function intersect(l1, l2) {
+    const det = l1.a.mul(l2.b).sub(l2.a.mul(l1.b));
+    if (det.isZero()) return null;
+    const x = l1.rhs.mul(l2.b).sub(l2.rhs.mul(l1.b)).div(det);
+    const y = l1.a.mul(l2.rhs).sub(l2.a.mul(l1.rhs)).div(det);
+    return [x, y];
+  }
+  function satisfiesAll(x, y) {
+    for (const c of problem.constraints) {
+      const lhs = c.coeffs[0].mul(x).add(c.coeffs[1].mul(y));
+      if (c.op === '<=' && lhs.gt(c.rhs)) return false;
+      if (c.op === '>=' && lhs.lt(c.rhs)) return false;
+      if (c.op === '=' && lhs.cmp(c.rhs) !== 0) return false;
+    }
+    return !(x.lt(F0) || y.lt(F0));
+  }
+
+  const seen = new Set();
+  const feasiblePoints = [];
+  for (let i = 0; i < boundaryLines.length; i++) {
+    for (let j = i + 1; j < boundaryLines.length; j++) {
+      const p = intersect(boundaryLines[i], boundaryLines[j]);
+      if (!p) continue;
+      const key = p[0].toString() + ',' + p[1].toString();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (satisfiesAll(p[0], p[1])) feasiblePoints.push(p);
+    }
+  }
+
+  if (feasiblePoints.length === 0) return { vertices: [], lines, unbounded: result.status === 'unbounded' };
+
+  const cx = feasiblePoints.reduce((s, p) => s + p[0].toDecimal(), 0) / feasiblePoints.length;
+  const cy = feasiblePoints.reduce((s, p) => s + p[1].toDecimal(), 0) / feasiblePoints.length;
+  feasiblePoints.sort((a, b) => Math.atan2(a[1].toDecimal() - cy, a[0].toDecimal() - cx) - Math.atan2(b[1].toDecimal() - cy, b[0].toDecimal() - cx));
+
+  const vertices = feasiblePoints.map(([x, y], idx) => ({
+    label: String.fromCharCode(65 + idx), x, y, z: c1.mul(x).add(c2.mul(y)),
+  }));
+
+  let optimalLabels = [];
+  if (result.status === 'optimal' && vertices.length > 0) {
+    let best = vertices[0].z;
+    vertices.forEach(v => { if (problem.sense === 'max' ? v.z.gt(best) : v.z.lt(best)) best = v.z; });
+    optimalLabels = vertices.filter(v => v.z.cmp(best) === 0).map(v => v.label);
+  }
+
+  return { vertices, lines, optimalLabels, unbounded: result.status === 'unbounded' };
+}
+
+function renderGraphCard(graphical, sense) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = '<h2>Método gráfico</h2>';
+
+  if (graphical.vertices.length === 0) {
+    const p = document.createElement('p');
+    p.style.fontSize = '13px'; p.style.color = 'var(--muted-foreground)';
+    p.textContent = 'No hay una región factible acotada para graficar.';
+    card.appendChild(p);
+    return card;
+  }
+
+  const maxX = Math.max(1, ...graphical.vertices.map(v => v.x.toDecimal()));
+  const maxY = Math.max(1, ...graphical.vertices.map(v => v.y.toDecimal()));
+  const padX = maxX * 0.25, padY = maxY * 0.25;
+  const boundX = maxX + padX, boundY = maxY + padY;
+
+  const W = 460, H = 340, margin = { l: 42, r: 16, t: 16, b: 32 };
+  const plotW = W - margin.l - margin.r, plotH = H - margin.t - margin.b;
+  const toPx = (x, y) => [margin.l + (x / boundX) * plotW, margin.t + plotH - (y / boundY) * plotH];
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  const gridColor = '#e3daf5';
+  for (let i = 0; i <= 5; i++) {
+    const gx = margin.l + (i / 5) * plotW, gy = margin.t + (i / 5) * plotH;
+    svg += `<line x1="${gx}" y1="${margin.t}" x2="${gx}" y2="${margin.t + plotH}" stroke="${gridColor}" stroke-width="1"/>`;
+    svg += `<line x1="${margin.l}" y1="${gy}" x2="${margin.l + plotW}" y2="${gy}" stroke="${gridColor}" stroke-width="1"/>`;
+    const xLabel = ((i / 5) * boundX).toFixed(1);
+    const yLabel = (boundY - (i / 5) * boundY).toFixed(1);
+    svg += `<text x="${gx}" y="${margin.t + plotH + 14}" font-size="9" fill="#6b6483" text-anchor="middle">${xLabel}</text>`;
+    svg += `<text x="${margin.l - 6}" y="${gy + 3}" font-size="9" fill="#6b6483" text-anchor="end">${yLabel}</text>`;
+  }
+  svg += `<line x1="${margin.l}" y1="${margin.t}" x2="${margin.l}" y2="${margin.t + plotH}" stroke="#17112c" stroke-width="1.5"/>`;
+  svg += `<line x1="${margin.l}" y1="${margin.t + plotH}" x2="${margin.l + plotW}" y2="${margin.t + plotH}" stroke="#17112c" stroke-width="1.5"/>`;
+  svg += `<text x="${margin.l + plotW}" y="${margin.t + plotH - 6}" font-size="10" fill="#17112c" text-anchor="end">x1</text>`;
+  svg += `<text x="${margin.l + 4}" y="${margin.t + 10}" font-size="10" fill="#17112c">x2</text>`;
+
+  if (graphical.vertices.length >= 3) {
+    const pts = graphical.vertices.map(v => toPx(v.x.toDecimal(), v.y.toDecimal()).join(',')).join(' ');
+    svg += `<polygon points="${pts}" fill="#6d28d9" fill-opacity="0.15" stroke="#6d28d9" stroke-width="1.5"/>`;
+  }
+
+  graphical.lines.forEach(line => {
+    const a = line.a.toDecimal(), b = line.b.toDecimal(), r = line.rhs.toDecimal();
+    let p1, p2;
+    if (b !== 0) {
+      p1 = toPx(0, r / b);
+      p2 = toPx(boundX, (r - a * boundX) / b);
+    } else {
+      const xVal = r / a;
+      p1 = toPx(xVal, 0); p2 = toPx(xVal, boundY);
+    }
+    svg += `<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="#6b6483" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  });
+
+  graphical.vertices.forEach(v => {
+    const [px, py] = toPx(v.x.toDecimal(), v.y.toDecimal());
+    const isOptimal = graphical.optimalLabels && graphical.optimalLabels.includes(v.label);
+    const color = isOptimal ? '#059669' : '#17112c';
+    const r = isOptimal ? 6 : 4;
+    svg += `<circle cx="${px}" cy="${py}" r="${r}" fill="${color}"><title>${v.label}: (${v.x}, ${v.y})  Z=${v.z}</title></circle>`;
+    svg += `<text x="${px + 7}" y="${py - 6}" font-size="10" font-weight="700" fill="${color}">${v.label}${isOptimal ? ' ★' : ''}</text>`;
+  });
+
+  svg += '</svg>';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'graph-wrap';
+  wrap.innerHTML = svg;
+  card.appendChild(wrap);
+
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  legend.innerHTML = `
+    <span><i style="background:#6d28d9;"></i> Región factible</span>
+    <span><i style="background:#6b6483; opacity:.6;"></i> Restricciones</span>
+    <span><i style="background:#059669;"></i> Óptimo</span>
+  `;
+  card.appendChild(legend);
+
+  const table = document.createElement('table');
+  table.className = 'vertex-table';
+  let thead = '<thead><tr><th>Vértice</th><th>x1</th><th>x2</th><th>Z</th><th>Estado</th></tr></thead><tbody>';
+  graphical.vertices.forEach(v => {
+    const isOptimal = graphical.optimalLabels && graphical.optimalLabels.includes(v.label);
+    thead += `<tr class="${isOptimal ? 'optimal-row' : ''}"><td>${v.label}</td><td>${v.x}</td><td>${v.y}</td><td>${v.z}</td><td>${isOptimal ? 'Óptimo' : ''}</td></tr>`;
+  });
+  thead += '</tbody>';
+  table.innerHTML = thead;
+  card.appendChild(table);
+
+  return card;
+}
+
+// ---------- Sensibilidad ----------
+function computeSensitivity(problem, result) {
+  const ft = result.finalTableau;
+  const { matrix, rhs, zRow, basis, colNames, artificialCols } = ft;
+  const artificialSet = new Set(artificialCols);
+  const basisSet = new Set(basis);
+  const sense = problem.sense;
+
+  const identityCols = problem.constraints.map((c, i) => {
+    let idx = colNames.indexOf(`s${i + 1}`);
+    if (idx === -1) idx = colNames.indexOf(`a${i + 1}`);
+    return idx;
+  });
+
+  const rhsRanges = problem.constraints.map((c, i) => {
+    const idCol = identityCols[i];
+    let deltaMin = null, deltaMax = null;
+    for (let k = 0; k < matrix.length; k++) {
+      const coeff = matrix[k][idCol];
+      if (coeff.isZero()) continue;
+      const bound = rhs[k].neg().div(coeff);
+      if (coeff.gt(F0)) { if (deltaMin === null || bound.gt(deltaMin)) deltaMin = bound; }
+      else { if (deltaMax === null || bound.lt(deltaMax)) deltaMax = bound; }
+    }
+    const shadowRaw = zRow[idCol];
+    const shadowPrice = sense === 'min' ? shadowRaw.neg() : shadowRaw;
+    return {
+      name: `R${i + 1}`,
+      current: c.rhs,
+      lower: deltaMin === null ? null : c.rhs.add(deltaMin),
+      upper: deltaMax === null ? null : c.rhs.add(deltaMax),
+      shadowPrice,
+    };
+  });
+
+  const objectiveRanges = problem.varNames.map((name, j) => {
+    const currentC = problem.objective[j];
+    const intObjJ = sense === 'min' ? currentC.neg() : currentC;
+    const rowIdx = basis.indexOf(j);
+    let deltaMin = null, deltaMax = null;
+    if (rowIdx !== -1) {
+      const row = matrix[rowIdx];
+      for (let k = 0; k < colNames.length; k++) {
+        if (artificialSet.has(k) || basisSet.has(k)) continue;
+        const coeff = row[k];
+        if (coeff.isZero()) continue;
+        const bound = zRow[k].neg().div(coeff);
+        if (coeff.gt(F0)) { if (deltaMin === null || bound.gt(deltaMin)) deltaMin = bound; }
+        else { if (deltaMax === null || bound.lt(deltaMax)) deltaMax = bound; }
+      }
+      const intLower = deltaMin === null ? null : intObjJ.add(deltaMin);
+      const intUpper = deltaMax === null ? null : intObjJ.add(deltaMax);
+      const lower = sense === 'min' ? (intUpper === null ? null : intUpper.neg()) : intLower;
+      const upper = sense === 'min' ? (intLower === null ? null : intLower.neg()) : intUpper;
+      return { name, current: currentC, lower, upper };
+    } else {
+      const intUpper = intObjJ.add(zRow[j]);
+      const lower = sense === 'min' ? intUpper.neg() : null;
+      const upper = sense === 'min' ? null : intUpper;
+      return { name, current: currentC, lower, upper };
+    }
+  });
+
+  return { objectiveRanges, rhsRanges };
+}
+
+// ---------- Dual ----------
+function computeDual(problem, sensitivity) {
+  const primalSense = problem.sense;
+  const dualSense = primalSense === 'max' ? 'min' : 'max';
+  const dualVariables = problem.constraints.map((c, i) => {
+    let sign;
+    if (c.op === '=') sign = 'free';
+    else if (primalSense === 'max') sign = (c.op === '<=') ? 'nonnegative' : 'nonpositive';
+    else sign = (c.op === '>=') ? 'nonnegative' : 'nonpositive';
+    return { name: `y${i + 1}`, constraintName: `R${i + 1}`, sign, value: sensitivity.rhsRanges[i].shadowPrice };
+  });
+  const dualOp = primalSense === 'max' ? '>=' : '<=';
+  const dualConstraints = problem.varNames.map((name, j) => ({
+    varName: name,
+    coeffs: problem.constraints.map(c => c.coeffs[j]),
+    op: dualOp,
+    rhs: problem.objective[j],
+  }));
+  const dualObjectiveCoeffs = problem.constraints.map(c => c.rhs);
+  const primalZ = null;
+  return { dualSense, dualVariables, dualConstraints, dualObjectiveCoeffs };
+}
+
+function computeComplementarySlackness(problem, result, dual) {
+  const lines = [];
+  problem.constraints.forEach((c, i) => {
+    let lhs = F0;
+    problem.varNames.forEach((name, j) => { lhs = lhs.add(c.coeffs[j].mul(result.solution[name])); });
+    let slack = lhs.sub(c.rhs);
+    if (slack.cmp(F0) < 0) slack = slack.neg();
+    lines.push(`R${i + 1}: holgura primal = ${slack.toString()}, ${dual.dualVariables[i].name} = ${dual.dualVariables[i].value.toString()}`);
+  });
+  problem.varNames.forEach((name, j) => {
+    const rowIdx = result.finalTableau.basis.indexOf(j);
+    const dualSlack = rowIdx !== -1 ? F0 : result.finalTableau.zRow[j];
+    lines.push(`${name} = ${result.solution[name].toString()}, holgura dual = ${dualSlack.toString()}`);
+  });
+  return lines;
+}
+
+// ---------- Branch & Bound ----------
+function branchAndBound(problem, varTypes) {
+  const integerIdx = varTypes.map((t, i) => (t !== 'continuous' ? i : null)).filter(i => i !== null);
+  if (integerIdx.length === 0) return null;
+
+  let baseConstraints = problem.constraints.slice();
+  varTypes.forEach((t, i) => {
+    if (t === 'binary') {
+      const coeffs = new Array(problem.varNames.length).fill(F0);
+      coeffs[i] = F1;
+      baseConstraints = [...baseConstraints, { coeffs, op: '<=', rhs: F1 }];
+    }
+  });
+
+  const MAX_NODES = 500;
+  let best = null;
+  let nodeCounter = 0;
+  const nodes = [];
+  let idCounter = 1;
+
+  const rootProblem = { ...problem, constraints: baseConstraints };
+  const stack = [{ problem: rootProblem, id: 0, parentId: null, branchDesc: null }];
+
+  while (stack.length > 0 && nodeCounter < MAX_NODES) {
+    const node = stack.pop();
+    nodeCounter++;
+    let relax;
+    try { relax = solveLP(node.problem); } catch (e) { relax = { status: 'error' }; }
+
+    const rec = { id: node.id, parentId: node.parentId, branchDesc: node.branchDesc, status: relax.status };
+
+    if (relax.status !== 'optimal') {
+      rec.outcome = 'infeasible';
+      nodes.push(rec);
+      continue;
+    }
+    rec.z = relax.z;
+    rec.solution = relax.solution;
+
+    if (best !== null) {
+      const better = problem.sense === 'max' ? relax.z.gt(best.z) : relax.z.lt(best.z);
+      if (!better) { rec.outcome = 'pruned_bound'; nodes.push(rec); continue; }
+    }
+
+    let branchVar = -1, bestScore = -1;
+    integerIdx.forEach(vi => {
+      const val = relax.solution[problem.varNames[vi]];
+      if (val.d === 1n) return;
+      const dec = val.toDecimal();
+      const frac = dec - Math.floor(dec);
+      const score = Math.min(frac, 1 - frac);
+      if (score > bestScore) { bestScore = score; branchVar = vi; }
+    });
+
+    if (branchVar === -1) {
+      rec.outcome = 'integer_feasible';
+      if (best === null || (problem.sense === 'max' ? relax.z.gt(best.z) : relax.z.lt(best.z))) {
+        best = { z: relax.z, solution: relax.solution };
+        rec.isIncumbent = true;
+      }
+      nodes.push(rec);
+      continue;
+    }
+
+    rec.outcome = 'branched';
+    rec.branchedVar = problem.varNames[branchVar];
+    nodes.push(rec);
+
+    const val = relax.solution[problem.varNames[branchVar]];
+    const dec = val.toDecimal();
+    const floorVal = Math.floor(dec), ceilVal = Math.ceil(dec);
+
+    const coeffsLE = new Array(problem.varNames.length).fill(F0); coeffsLE[branchVar] = F1;
+    const childLE = {
+      problem: { ...node.problem, constraints: [...node.problem.constraints, { coeffs: coeffsLE, op: '<=', rhs: new Frac(floorVal) }] },
+      id: idCounter, parentId: node.id, branchDesc: `${problem.varNames[branchVar]} <= ${floorVal}`,
+    };
+    idCounter++;
+    const coeffsGE = new Array(problem.varNames.length).fill(F0); coeffsGE[branchVar] = F1;
+    const childGE = {
+      problem: { ...node.problem, constraints: [...node.problem.constraints, { coeffs: coeffsGE, op: '>=', rhs: new Frac(ceilVal) }] },
+      id: idCounter, parentId: node.id, branchDesc: `${problem.varNames[branchVar]} >= ${ceilVal}`,
+    };
+    idCounter++;
+
+    stack.push(childLE);
+    stack.push(childGE);
+  }
+
+  return { best, nodes, nodeCount: nodeCounter, hitLimit: nodeCounter >= MAX_NODES };
+}
+
+function fmtBound(v) { return v === null ? 'sin límite' : v.toString(); }
+
+function renderSensitivityInto(panel, sens) {
+  const objCard = document.createElement('div');
+  objCard.className = 'card';
+  objCard.innerHTML = '<h2>Rangos de la función objetivo</h2>';
+  let h1 = '<table><thead><tr><th>Variable</th><th>Valor actual</th><th>Límite inferior</th><th>Límite superior</th></tr></thead><tbody>';
+  sens.objectiveRanges.forEach(r => {
+    h1 += `<tr><td>${r.name}</td><td>${r.current.toString()}</td><td>${fmtBound(r.lower)}</td><td>${fmtBound(r.upper)}</td></tr>`;
+  });
+  h1 += '</tbody></table><p class="hint">Rango en el que puede variar cada coeficiente sin que cambie la base óptima actual.</p>';
+  objCard.innerHTML += h1;
+  panel.appendChild(objCard);
+
+  const rhsCard = document.createElement('div');
+  rhsCard.className = 'card';
+  rhsCard.innerHTML = '<h2>Precios sombra y rangos del lado derecho (RHS)</h2>';
+  let h2 = '<table><thead><tr><th>Restricción</th><th>RHS actual</th><th>Límite inferior</th><th>Límite superior</th><th>Precio sombra</th></tr></thead><tbody>';
+  sens.rhsRanges.forEach(r => {
+    h2 += `<tr><td>${r.name}</td><td>${r.current.toString()}</td><td>${fmtBound(r.lower)}</td><td>${fmtBound(r.upper)}</td><td>${r.shadowPrice.toString()}</td></tr>`;
+  });
+  h2 += '</tbody></table>';
+  rhsCard.innerHTML += h2;
+  const expl = document.createElement('div');
+  expl.className = 'explanation';
+  expl.innerHTML = sens.rhsRanges.map(r => r.shadowPrice.isZero()
+    ? `${r.name}: no es restrictiva en el óptimo (holgura); cambiar su RHS dentro del rango no afecta a Z.`
+    : `${r.name}: es restrictiva en el óptimo: por cada unidad que aumente su RHS, Z cambia en ${r.shadowPrice.toString()}, mientras el RHS se mantenga en el rango indicado.`
+  ).join('<br><br>');
+  rhsCard.appendChild(expl);
+  panel.appendChild(rhsCard);
+}
+
+function renderDualInto(panel, dual, csLines, problem, result) {
+  const formCard = document.createElement('div');
+  formCard.className = 'card';
+  formCard.innerHTML = '<h2>Formulación del dual</h2>';
+  const senseLabel = dual.dualSense === 'max' ? 'Max' : 'Min';
+  const objStr = dual.dualObjectiveCoeffs.map((c, i) => `${c.toString()} ${dual.dualVariables[i].name}`).join(' + ');
+  let html = `<div class="dual-block"><p><strong>${senseLabel} W = ${objStr}</strong></p><p>Sujeto a:</p>`;
+  dual.dualConstraints.forEach(dc => {
+    const lhs = dc.coeffs.map((c, i) => `${c.toString()} ${dual.dualVariables[i].name}`).join(' + ');
+    html += `<p>${lhs} ${dc.op} ${dc.rhs.toString()} <span style="color:var(--muted-foreground); font-size:12px;">(variable dual de ${dc.varName})</span></p>`;
+  });
+  dual.dualVariables.forEach(dv => {
+    const signText = dv.sign === 'nonnegative' ? `${dv.name} ≥ 0` : dv.sign === 'nonpositive' ? `${dv.name} ≤ 0` : `${dv.name} libre`;
+    html += `<p>${signText}</p>`;
+  });
+  html += '</div>';
+  formCard.innerHTML += html;
+  panel.appendChild(formCard);
+
+  const solCard = document.createElement('div');
+  solCard.className = 'card';
+  solCard.innerHTML = '<h2>Solución del dual</h2>';
+  let t = '<table><thead><tr><th>Variable dual</th><th>Restricción primal</th><th>Signo</th><th>Valor</th></tr></thead><tbody>';
+  dual.dualVariables.forEach(dv => {
+    const signText = dv.sign === 'nonnegative' ? '≥ 0' : dv.sign === 'nonpositive' ? '≤ 0' : 'libre';
+    t += `<tr><td>${dv.name}</td><td>${dv.constraintName}</td><td>${signText}</td><td>${dv.value.toString()}</td></tr>`;
+  });
+  t += '</tbody></table>';
+  solCard.innerHTML += t;
+  const dualZ = dual.dualObjectiveCoeffs.reduce((s, c, i) => s.add(c.mul(dual.dualVariables[i].value)), F0);
+  const strongP = document.createElement('p');
+  strongP.style.fontSize = '13px'; strongP.style.marginTop = '10px';
+  strongP.innerHTML = `<strong>Dualidad fuerte:</strong> Z primal = ${result.z.toString()} ${dualZ.cmp(result.z) === 0 ? '=' : '≠'} Z dual ${dualZ.toString()}.`;
+  solCard.appendChild(strongP);
+  panel.appendChild(solCard);
+
+  const csCard = document.createElement('div');
+  csCard.className = 'card';
+  csCard.innerHTML = '<h2>Holgura complementaria</h2>';
+  const csList = document.createElement('div');
+  csList.className = 'cs-list';
+  csList.innerHTML = csLines.join('<br>');
+  csCard.appendChild(csList);
+  panel.appendChild(csCard);
+}
+
+function renderBnBInto(panel, bnb, problem) {
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'card';
+  if (bnb.best) {
+    const solText = problem.varNames.map(n => `${n} = ${bnb.best.solution[n].toString()}`).join(', ');
+    summaryCard.innerHTML = `<h2>Solución entera óptima</h2>
+      <p style="font-size:13px; color:var(--muted-foreground);">Se encontró la solución entera óptima mediante Ramificación y Acotamiento.</p>
+      <p style="font-family:ui-monospace,Consolas,monospace; font-size:22px; font-weight:700; margin-top:8px;">Z = ${bnb.best.z.toString()}</p>
+      <p style="font-family:ui-monospace,Consolas,monospace; font-size:13px;">${solText}</p>`;
+  } else {
+    summaryCard.innerHTML = `<h2>Sin solución entera</h2><p style="font-size:13px;">No se encontró ninguna solución entera factible${bnb.hitLimit ? ' (se alcanzó el límite de 500 nodos explorados)' : ''}.</p>`;
+  }
+  panel.appendChild(summaryCard);
+
+  const treeCard = document.createElement('div');
+  treeCard.className = 'card';
+  treeCard.innerHTML = '<h2>Árbol de Ramificación y Acotamiento</h2>';
+  bnb.nodes.forEach(n => {
+    const isFinalOptimal = bnb.best && n.status === 'optimal' && n.outcome === 'integer_feasible' && n.z.cmp(bnb.best.z) === 0;
+    const div = document.createElement('div');
+    div.className = 'tree-node' + (isFinalOptimal ? ' incumbent' : '') + ((n.outcome === 'pruned_bound' || n.outcome === 'infeasible') ? ' pruned' : '');
+    let title = `Nodo ${n.id}`;
+    if (n.branchDesc) title += ` <span style="font-weight:400; color:var(--muted-foreground);">(${n.branchDesc})</span>`;
+    if (isFinalOptimal) title += ' <span style="color:var(--success);">★ Óptima entera</span>';
+    let body;
+    if (n.status !== 'optimal') {
+      body = 'Infactible (relajación LP sin solución).';
+    } else {
+      const solText = problem.varNames.map(v => `${v}=${n.solution[v].toString()}`).join(', ');
+      body = `Z = ${n.z.toString()} — ${solText}`;
+    }
+    let outcomeLabel = '';
+    if (n.outcome === 'branched') outcomeLabel = `<span class="badge badge-phase">Ramifica sobre ${n.branchedVar}</span>`;
+    else if (n.outcome === 'integer_feasible') outcomeLabel = `<span class="badge badge-enter">Entera (candidata)</span>`;
+    else if (n.outcome === 'pruned_bound') outcomeLabel = `<span class="badge badge-leave">Podado por cota</span>`;
+    else if (n.outcome === 'infeasible') outcomeLabel = `<span class="badge badge-leave">Podado por infactibilidad</span>`;
+    div.innerHTML = `<div class="tn-title">${title}</div><div style="font-family:ui-monospace,Consolas,monospace; font-size:12px; margin-bottom:6px;">${body}</div>${outcomeLabel}`;
+    treeCard.appendChild(div);
+  });
+  if (bnb.hitLimit) {
+    const p = document.createElement('p');
+    p.className = 'hint'; p.textContent = 'Se alcanzó el límite de seguridad de 500 nodos explorados.';
+    treeCard.appendChild(p);
+  }
+  panel.appendChild(treeCard);
+}
+
+function renderResults(result, problem) {
+  const sense = problem.sense;
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+
+  const statusCard = document.createElement('div');
+  const messages = {
+    optimal: { cls: 'status-optimal', title: 'Solución óptima', text: 'Se encontró la solución óptima.' },
+    infeasible: { cls: 'status-infeasible', title: 'Problema infactible', text: 'Ningún punto satisface todas las restricciones.' },
+    unbounded: { cls: 'status-unbounded', title: 'Problema no acotado', text: 'La función objetivo puede crecer (o decrecer) sin límite dentro de la región factible.' },
+    error: { cls: 'status-unbounded', title: 'No se pudo resolver', text: 'Se alcanzó el límite de iteraciones. Revisá el planteo del problema.' },
+  };
+  const m = messages[result.status];
+  statusCard.className = 'card status-banner ' + m.cls;
+  statusCard.innerHTML = `<div><div class="status-title">${m.title}</div><div style="font-size:13px; margin-top:2px;">${m.text}</div></div>`;
+  container.appendChild(statusCard);
+
+  if (result.status !== 'optimal') {
+    if (result.graphical) container.appendChild(renderGraphCard(result.graphical, sense));
+    if (result.iterations.length > 0) {
+      const iterCard = document.createElement('div');
+      iterCard.className = 'card';
+      iterCard.innerHTML = '<h2>Iteraciones del tableau</h2>';
+      result.iterations.forEach((snap, i) => iterCard.appendChild(renderIteration(snap, i, sense)));
+      container.appendChild(iterCard);
+    }
+    return;
+  }
+
+  const tabDefs = [{ key: 'resumen', label: 'Resumen' }, { key: 'iteraciones', label: 'Iteraciones' }];
+  if (result.graphical) tabDefs.push({ key: 'grafico', label: 'Gráfico' });
+  tabDefs.push({ key: 'sensibilidad', label: 'Sensibilidad' });
+  tabDefs.push({ key: 'dual', label: 'Dual' });
+  if (result.branchAndBound) tabDefs.push({ key: 'entera', label: 'Entera' });
+
+  const tabBar = document.createElement('div');
+  tabBar.className = 'tabs';
+  const panelsWrap = document.createElement('div');
+  const panels = {};
+
+  tabDefs.forEach((t, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+    btn.textContent = t.label;
+    btn.type = 'button';
+    btn.onclick = () => {
+      tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(panels).forEach(p => p.classList.remove('active'));
+      panels[t.key].classList.add('active');
+    };
+    tabBar.appendChild(btn);
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (idx === 0 ? ' active' : '');
+    panels[t.key] = panel;
+    panelsWrap.appendChild(panel);
+  });
+  container.appendChild(tabBar);
+  container.appendChild(panelsWrap);
+
+  const zCard = document.createElement('div');
+  zCard.className = 'z-hero';
+  zCard.innerHTML = `<div class="label">Valor óptimo</div><div class="value">Z = ${result.z.toString()}</div>`;
+  panels.resumen.appendChild(zCard);
+
+  const solCard = document.createElement('div');
+  solCard.className = 'card';
+  solCard.innerHTML = '<h2>Solución</h2>';
+  const grid = document.createElement('div');
+  grid.className = 'solution-grid';
+  Object.entries(result.solution).forEach(([name, val]) => {
+    const item = document.createElement('div');
+    item.className = 'solution-item';
+    item.innerHTML = `<div class="name">${name}</div><div class="val">${val.toString()} <span style="font-weight:400; font-size:11px; color:var(--muted-foreground);">(${val.toDecimal().toFixed(3)})</span></div>`;
+    grid.appendChild(item);
+  });
+  solCard.appendChild(grid);
+  panels.resumen.appendChild(solCard);
+
+  const iterCard = document.createElement('div');
+  iterCard.className = 'card';
+  iterCard.innerHTML = '<h2>Iteraciones del tableau</h2>';
+  result.iterations.forEach((snap, i) => iterCard.appendChild(renderIteration(snap, i, sense)));
+  panels.iteraciones.appendChild(iterCard);
+
+  if (result.graphical) panels.grafico.appendChild(renderGraphCard(result.graphical, sense));
+
+  renderSensitivityInto(panels.sensibilidad, result.sensitivity);
+  renderDualInto(panels.dual, result.dual, result.complementarySlackness, problem, result);
+  if (result.branchAndBound) renderBnBInto(panels.entera, result.branchAndBound, problem);
+}
+
+function renderIteration(snap, i, sense) {
+  const block = document.createElement('div');
+  block.className = 'iteration-block';
+  const header = document.createElement('div');
+  header.className = 'iteration-header';
+  header.innerHTML = snap.isFinal
+    ? `<span class="badge badge-phase">${snap.phase} · Tableau final</span>`
+    : `
+    <span class="badge badge-phase">${snap.phase} · Iteración ${i + 1}</span>
+    <span class="badge badge-enter">Entra: ${snap.entering}</span>
+    <span class="badge badge-leave">Sale: ${snap.leaving}</span>
+    <span style="font-size:12px; color:var(--muted-foreground);">Pivote: ${snap.pivotElement}</span>
+  `;
+  block.appendChild(header);
+  const explanation = document.createElement('div');
+  explanation.className = 'explanation';
+  explanation.textContent = explainIteration(snap, sense);
+  block.appendChild(explanation);
+
+  const table = document.createElement('table');
+  const varCols = snap.colNames;
+  let thead = '<thead><tr><th>Base</th>';
+  varCols.forEach(name => thead += `<th>${name}</th>`);
+  thead += '<th>RHS</th></tr></thead>';
+  let tbody = '<tbody>';
+  snap.matrix.forEach((row, r) => {
+    tbody += `<tr><td>${snap.basisNames[r]}</td>`;
+    row.forEach((val, c) => {
+      const isPivot = r === snap.pivotRowIdx && c === snap.pivotColIdx;
+      tbody += `<td class="${isPivot ? 'pivot-cell' : ''}">${val}</td>`;
+    });
+    tbody += `<td>${snap.rhs[r]}</td></tr>`;
+  });
+  tbody += `<tr style="font-weight:700;"><td>Z</td>`;
+  snap.zRow.forEach(v => tbody += `<td>${v}</td>`);
+  tbody += `<td>${snap.zValue}</td></tr>`;
+  tbody += '</tbody>';
+  table.innerHTML = thead + tbody;
+  block.appendChild(table);
+  return block;
+}
+
+initUI();
+</script>
+</body>
+</html>
